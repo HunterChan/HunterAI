@@ -3,6 +3,7 @@ package com.example.demo.controller;
 import com.example.demo.entity.Prompt;
 import com.example.demo.entity.User;
 import com.example.demo.service.PromptService;
+import com.example.demo.util.SecurityUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -29,7 +30,7 @@ public class PromptController {
      */
     @GetMapping
     public ResponseEntity<List<Prompt>> getAvailablePrompts(Authentication authentication) {
-        User currentUser = (User) authentication.getPrincipal();
+        User currentUser = SecurityUtils.getCurrentUserOrTestUser(authentication);
         List<Prompt> prompts = promptService.getAvailablePrompts(currentUser.getId());
         return ResponseEntity.ok(prompts);
     }
@@ -39,7 +40,7 @@ public class PromptController {
      */
     @GetMapping("/user")
     public ResponseEntity<List<Prompt>> getUserPrompts(Authentication authentication) {
-        User currentUser = (User) authentication.getPrincipal();
+        User currentUser = SecurityUtils.getCurrentUserOrTestUser(authentication);
         List<Prompt> prompts = promptService.getUserPrompts(currentUser.getId());
         return ResponseEntity.ok(prompts);
     }
@@ -60,7 +61,7 @@ public class PromptController {
     public ResponseEntity<List<Prompt>> searchPrompts(
             @RequestParam String keyword,
             Authentication authentication) {
-        User currentUser = (User) authentication.getPrincipal();
+        User currentUser = SecurityUtils.getCurrentUserOrTestUser(authentication);
         List<Prompt> prompts = promptService.searchPrompts(currentUser.getId(), keyword);
         return ResponseEntity.ok(prompts);
     }
@@ -81,7 +82,7 @@ public class PromptController {
     public ResponseEntity<Prompt> createPrompt(
             @RequestBody Map<String, String> payload,
             Authentication authentication) {
-        User currentUser = (User) authentication.getPrincipal();
+        User currentUser = SecurityUtils.getCurrentUserOrTestUser(authentication);
         
         String content = payload.get("content");
         Boolean isPublic = Boolean.valueOf(payload.getOrDefault("isPublic", "false"));
@@ -113,7 +114,8 @@ public class PromptController {
             @PathVariable Long id,
             @RequestBody Map<String, String> payload,
             Authentication authentication) {
-        User currentUser = (User) authentication.getPrincipal();
+        User currentUser = SecurityUtils.getCurrentUserOrTestUser(authentication);
+        
         String content = payload.get("content");
         
         Prompt updatedPrompt = promptService.updatePrompt(id, content, currentUser.getId());
@@ -127,7 +129,7 @@ public class PromptController {
     public ResponseEntity<Prompt> togglePromptPublicStatus(
             @PathVariable Long id,
             Authentication authentication) {
-        User currentUser = (User) authentication.getPrincipal();
+        User currentUser = SecurityUtils.getCurrentUserOrTestUser(authentication);
         Prompt updatedPrompt = promptService.togglePromptPublicStatus(id, currentUser.getId());
         return ResponseEntity.ok(updatedPrompt);
     }
@@ -139,14 +141,20 @@ public class PromptController {
     public ResponseEntity<Map<String, Object>> deletePrompt(
             @PathVariable Long id,
             Authentication authentication) {
-        User currentUser = (User) authentication.getPrincipal();
-        promptService.deletePrompt(id, currentUser.getId());
+        User currentUser = SecurityUtils.getCurrentUserOrTestUser(authentication);
         
-        Map<String, Object> response = new HashMap<>();
-        response.put("success", true);
-        response.put("message", "提示词已删除");
-        
-        return ResponseEntity.ok(response);
+        try {
+            promptService.deletePrompt(id, currentUser.getId());
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("message", "提示词已删除");
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", false);
+            response.put("message", e.getMessage());
+            return ResponseEntity.ok(response);
+        }
     }
     
     /**

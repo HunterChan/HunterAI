@@ -7,6 +7,7 @@ import com.example.demo.entity.User;
 import com.example.demo.service.PhotoMergeService;
 import com.example.demo.service.PhotoService;
 import com.example.demo.service.PromptService;
+import com.example.demo.util.SecurityUtils;
 import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -54,7 +55,7 @@ public class PhotoMergeController {
      */
     @GetMapping
     public ResponseEntity<List<PhotoMerge>> getUserMerges(Authentication authentication) {
-        User currentUser = (User) authentication.getPrincipal();
+        User currentUser = SecurityUtils.getCurrentUserOrTestUser(authentication);
         List<PhotoMerge> merges = photoMergeService.getUserMerges(currentUser.getId());
         return ResponseEntity.ok(merges);
     }
@@ -67,7 +68,7 @@ public class PhotoMergeController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             Authentication authentication) {
-        User currentUser = (User) authentication.getPrincipal();
+        User currentUser = SecurityUtils.getCurrentUserOrTestUser(authentication);
         
         Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
         Page<PhotoMerge> merges = photoMergeService.getUserMergesPaged(currentUser.getId(), pageable);
@@ -82,7 +83,7 @@ public class PhotoMergeController {
     public ResponseEntity<PhotoMerge> getMerge(
             @PathVariable Long id,
             Authentication authentication) {
-        User currentUser = (User) authentication.getPrincipal();
+        User currentUser = SecurityUtils.getCurrentUserOrTestUser(authentication);
         PhotoMerge merge = photoMergeService.getMerge(id, currentUser.getId());
         return ResponseEntity.ok(merge);
     }
@@ -98,7 +99,7 @@ public class PhotoMergeController {
             @RequestParam(value = "promptText", required = false) String promptText,
             Authentication authentication) {
         
-        User currentUser = (User) authentication.getPrincipal();
+        User currentUser = SecurityUtils.getCurrentUserOrTestUser(authentication);
         
         try {
             // 步骤1: 保存用户上传的图片
@@ -152,7 +153,7 @@ public class PhotoMergeController {
             Authentication authentication,
             HttpServletRequest request) {
         
-        User currentUser = (User) authentication.getPrincipal();
+        User currentUser = SecurityUtils.getCurrentUserOrTestUser(authentication);
         
         // 获取合照资源
         Resource resource = photoMergeService.getMergeResource(id, currentUser.getId());
@@ -180,7 +181,7 @@ public class PhotoMergeController {
             @PathVariable Long id,
             Authentication authentication) {
         
-        User currentUser = (User) authentication.getPrincipal();
+        User currentUser = SecurityUtils.getCurrentUserOrTestUser(authentication);
         
         // 获取合照资源
         Resource resource = photoMergeService.getMergeResource(id, currentUser.getId());
@@ -199,7 +200,7 @@ public class PhotoMergeController {
             @PathVariable Long id,
             Authentication authentication) {
         
-        User currentUser = (User) authentication.getPrincipal();
+        User currentUser = SecurityUtils.getCurrentUserOrTestUser(authentication);
         
         photoMergeService.deleteMerge(id, currentUser.getId());
         
@@ -218,7 +219,7 @@ public class PhotoMergeController {
             @PathVariable Long id,
             Authentication authentication) {
         
-        User currentUser = (User) authentication.getPrincipal();
+        User currentUser = SecurityUtils.getCurrentUserOrTestUser(authentication);
         
         // 异步处理合照重新生成
         photoMergeService.regenerateMerge(id, currentUser.getId());

@@ -1,5 +1,6 @@
 package com.example.demo.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import org.hibernate.annotations.CreationTimestamp;
 
@@ -7,6 +8,7 @@ import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "photo_merges")
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class PhotoMerge {
 
     @Id
@@ -15,18 +17,22 @@ public class PhotoMerge {
     
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
+    @JsonIgnoreProperties({"password", "email", "createdAt", "lastLogin", "hibernateLazyInitializer", "handler"})
     private User user;
     
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "photo1_id", nullable = false)
+    @JsonIgnoreProperties({"user", "hibernateLazyInitializer", "handler"})
     private Photo photo1;
     
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "photo2_id", nullable = false)
+    @JsonIgnoreProperties({"user", "hibernateLazyInitializer", "handler"})
     private Photo photo2;
     
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "scene_id", nullable = false)
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     private Scene scene;
     
     @Column(name = "prompt_text", columnDefinition = "TEXT")

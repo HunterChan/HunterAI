@@ -3,6 +3,7 @@ package com.example.demo.controller;
 import com.example.demo.entity.Photo;
 import com.example.demo.entity.User;
 import com.example.demo.service.PhotoService;
+import com.example.demo.util.SecurityUtils;
 import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,7 +47,7 @@ public class PhotoController {
         logger.info("接收到照片上传请求");
         
         // 获取当前用户
-        User currentUser = (User) authentication.getPrincipal();
+        User currentUser = SecurityUtils.getCurrentUserOrTestUser(authentication);
         
         // 上传照片
         Photo photo = photoService.uploadPhoto(file, currentUser);
@@ -75,7 +76,7 @@ public class PhotoController {
     @GetMapping
     public ResponseEntity<List<Map<String, Object>>> getUserPhotos(Authentication authentication) {
         // 获取当前用户
-        User currentUser = (User) authentication.getPrincipal();
+        User currentUser = SecurityUtils.getCurrentUserOrTestUser(authentication);
         
         // 获取用户照片列表
         List<Photo> photos = photoService.getUserPhotos(currentUser.getId());
@@ -113,7 +114,7 @@ public class PhotoController {
             HttpServletRequest request) {
         
         // 获取当前用户
-        User currentUser = (User) authentication.getPrincipal();
+        User currentUser = SecurityUtils.getCurrentUserOrTestUser(authentication);
         
         // 获取照片资源
         Resource resource = photoService.getPhotoResource(id, currentUser.getId());
@@ -142,7 +143,7 @@ public class PhotoController {
             Authentication authentication) {
         
         // 获取当前用户
-        User currentUser = (User) authentication.getPrincipal();
+        User currentUser = SecurityUtils.getCurrentUserOrTestUser(authentication);
         
         // 删除照片
         boolean deleted = photoService.deletePhoto(id, currentUser.getId());
@@ -170,7 +171,7 @@ public class PhotoController {
             Authentication authentication) {
         
         // 获取当前用户
-        User currentUser = (User) authentication.getPrincipal();
+        User currentUser = SecurityUtils.getCurrentUserOrTestUser(authentication);
         
         // 更新照片描述
         String description = payload.get("description");
@@ -188,9 +189,9 @@ public class PhotoController {
             Authentication authentication) {
         
         // 获取当前用户
-        User currentUser = (User) authentication.getPrincipal();
+        User currentUser = SecurityUtils.getCurrentUserOrTestUser(authentication);
         
-        // 搜索照片
+        // 搜索照片 - 使用已有的searchUserPhotos方法
         List<Photo> photos = photoService.searchUserPhotos(keyword, currentUser.getId());
         
         // 转换为前端需要的格式

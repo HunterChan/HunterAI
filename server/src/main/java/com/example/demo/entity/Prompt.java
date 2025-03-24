@@ -1,5 +1,6 @@
 package com.example.demo.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import org.hibernate.annotations.CreationTimestamp;
@@ -8,6 +9,7 @@ import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "prompts")
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class Prompt {
 
     @Id
@@ -16,6 +18,7 @@ public class Prompt {
     
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
+    @JsonIgnoreProperties({"password", "email", "createdAt", "lastLogin"})
     private User user;
     
     @Column(nullable = false, columnDefinition = "TEXT")

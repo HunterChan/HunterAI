@@ -1,5 +1,6 @@
 package com.example.demo.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -9,6 +10,7 @@ import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "photos")
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class Photo {
 
     @Id
@@ -17,6 +19,7 @@ public class Photo {
     
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
+    @JsonIgnoreProperties({"password", "email", "createdAt", "lastLogin"})
     private User user;
     
     @Column(name = "file_name", nullable = false)
