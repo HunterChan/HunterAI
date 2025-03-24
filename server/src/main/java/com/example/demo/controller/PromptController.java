@@ -3,8 +3,6 @@ package com.example.demo.controller;
 import com.example.demo.entity.Prompt;
 import com.example.demo.entity.User;
 import com.example.demo.service.PromptService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -18,8 +16,6 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/prompts")
 public class PromptController {
-    
-    private static final Logger logger = LoggerFactory.getLogger(PromptController.class);
     
     private final PromptService promptService;
     

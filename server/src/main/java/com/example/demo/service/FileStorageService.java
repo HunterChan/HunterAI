@@ -103,6 +103,10 @@ public class FileStorageService {
      * @return 存储的文件路径
      */
     public String storeFile(MultipartFile file, Long userId) {
+        if (file == null) {
+            throw new RuntimeException("文件不能为空");
+        }
+        
         try {
             // 检查文件是否为空
             if (file.isEmpty()) {
@@ -110,7 +114,8 @@ public class FileStorageService {
             }
             
             // 清理文件名
-            String originalFilename = StringUtils.cleanPath(file.getOriginalFilename());
+            String originalFilename = StringUtils.cleanPath(
+                file.getOriginalFilename() != null ? file.getOriginalFilename() : "unknown");
             
             // 检查文件名中是否包含无效字符
             if (originalFilename.contains("..")) {
@@ -132,8 +137,9 @@ public class FileStorageService {
             logger.info("文件已存储: {}", targetLocation);
             return targetLocation.toString();
         } catch (IOException ex) {
-            logger.error("无法存储文件 " + file.getOriginalFilename(), ex);
-            throw new RuntimeException("无法存储文件 " + file.getOriginalFilename(), ex);
+            String filename = file.getOriginalFilename() != null ? file.getOriginalFilename() : "unknown";
+            logger.error("无法存储文件 " + filename, ex);
+            throw new RuntimeException("无法存储文件 " + filename, ex);
         }
     }
     
