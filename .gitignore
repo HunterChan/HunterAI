@@ -85,3 +85,12 @@ mvnw.cmd
 ._*
 .Spotlight-V100
 .Trashes 
+
+# 上传文件
+uploads/
+
+# 服务端上传文件
+server/uploads/
+
+# 服务端编译输出
+server/target/
