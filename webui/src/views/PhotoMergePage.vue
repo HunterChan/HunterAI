@@ -112,7 +112,7 @@
                       <div class="scene-wrapper">
                         <el-image 
                           :src="getImageUrl(scene.previewImage)" 
-                          fit="cover"
+                          fit="contain"
                           class="scene-preview"
                         ></el-image>
                         <div class="scene-name">{{ scene.name }}</div>
@@ -174,7 +174,15 @@
               <p class="processing-text">{{processingText}}</p>
             </div>
             <div v-else class="result-preview">
-              <el-image :src="previewImage" fit="contain" class="preview-image"></el-image>
+              <div class="preview-image-container">
+                <el-image 
+                  :src="previewImage" 
+                  fit="scale-down"
+                  class="preview-image"
+                  :preview-src-list="[previewImage]"
+                  :initial-index="0"
+                ></el-image>
+              </div>
               <div class="preview-actions">
                 <el-button type="primary" @click="downloadPreview">
                   <el-icon><download /></el-icon> 下载
@@ -201,7 +209,7 @@
                 <div v-for="merge in recentMerges" :key="merge.id" class="history-item" @click="loadHistoryItem(merge)">
                   <el-image 
                     :src="getImageUrl(merge.resultPath)" 
-                    fit="cover"
+                    fit="contain"
                     v-if="merge.status === 'COMPLETED'">
                   </el-image>
                   <div v-else class="pending-image">
@@ -662,6 +670,10 @@ const getImageUrl = (path) => {
     // 移除./uploads/前缀，适配API路径
     apiPath = path.substring('./uploads/'.length);
     console.log('处理上传路径为:', apiPath);
+  } else if (path.startsWith('.\\uploads\\results\\')) {
+    // 获取路径最后一个反斜杠后的文件名
+    apiPath = 'results/' + path.substring(path.lastIndexOf('\\') + 1);
+    console.log('提取结果图片文件名:', apiPath);
   } else if (path.startsWith('./')) {
     apiPath = path.substring(2);
     console.log('处理相对路径为:', apiPath);
@@ -670,7 +682,7 @@ const getImageUrl = (path) => {
     console.log('使用原始路径:', apiPath);
   }
   
-  const finalUrl = `/api/files/${apiPath}`;
+  const finalUrl = `/api/files/images/${apiPath}`;
   console.log('最终图片URL:', finalUrl);
   return finalUrl;
 }
@@ -688,8 +700,8 @@ const fetchScenes = async () => {
   console.log('开始请求场景数据...')
   
   // 直接使用模拟数据，确保UI正常显示
-  scenes.value = mockScenes
-  console.log('使用模拟数据:', JSON.stringify(scenes.value))
+  //scenes.value = mockScenes
+  //console.log('使用模拟数据:', JSON.stringify(scenes.value))
   
   try {
     // 记录完整请求信息
@@ -734,8 +746,8 @@ const fetchScenes = async () => {
       })
       
       // 暂时注释掉，先不使用API数据，使用模拟数据
-      // scenes.value = apiScenes
-      // console.log('成功从API加载场景数据:', scenes.value)
+      scenes.value = apiScenes
+      console.log('成功从API加载场景数据:', scenes.value)
     } else {
       console.warn('警告: API返回的场景列表为空，继续使用模拟数据')
     }
@@ -895,10 +907,8 @@ onBeforeUnmount(() => {
 }
 
 .preview-img {
-  width: auto;
-  height: auto;
-  max-width: 100%;
-  max-height: 100%;
+  width: 100%;
+  height: 100%;
   object-fit: contain;
 }
 
@@ -976,7 +986,7 @@ onBeforeUnmount(() => {
   width: 100%;
   height: 80px;
   display: block;
-  object-fit: cover;
+  object-fit: contain;
   background-color: #f0f2f5;
 }
 

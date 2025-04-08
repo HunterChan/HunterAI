@@ -43,11 +43,11 @@ public class FileStorageService {
     public Resource loadFileAsResource(String filePath) throws Exception {
         try {
             Path resolvedPath = Paths.get(filePath).normalize();
-            logger.info("尝试加载文件: {}", resolvedPath);
+            logger.info("尝试加载文件: {}", resolvedPath.toAbsolutePath());
             
             Resource resource = new UrlResource(resolvedPath.toUri());
             if (resource.exists()) {
-                logger.info("文件加载成功: {}", resolvedPath);
+                logger.info("文件加载成功: {}", resolvedPath.toAbsolutePath());
                 return resource;
             } else {
                 // 如果文件不存在，尝试在静态资源目录查找

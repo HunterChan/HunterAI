@@ -4,6 +4,7 @@ import com.example.demo.entity.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 /**
  * 安全工具类
@@ -45,12 +46,10 @@ public class SecurityUtils {
      * @return 用户ID，永不为null
      */
     public static Long getCurrentUserId(Authentication authentication) {
-        if (authentication != null && authentication.getPrincipal() instanceof User) {
-            return ((User) authentication.getPrincipal()).getId();
+        if (authentication != null && authentication.getPrincipal() instanceof Long) {
+            return (Long) authentication.getPrincipal();
         }
-        
-        logger.debug("认证对象为空或不包含用户信息，使用默认用户ID: {}", DEFAULT_USER_ID);
-        return DEFAULT_USER_ID;
+        return null;
     }
     
     /**

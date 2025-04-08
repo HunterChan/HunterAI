@@ -25,14 +25,14 @@
 在 `application.properties` 文件中配置以下内容：
 
 ```properties
-spring.datasource.url=jdbc:postgresql://localhost:5432/demo
+spring.datasource.url=jdbc:postgresql://localhost:5432/hunterAI
 spring.datasource.username=postgres
 spring.datasource.password=postgres
 ```
 
 ## 启动应用
 
-1. 确保 PostgreSQL 数据库已启动并创建了名为 "demo" 的数据库
+1. 确保 PostgreSQL 数据库已启动并创建了名为 "hunterAI" 的数据库
 2. 执行下面的命令构建并运行应用
 
 ```bash

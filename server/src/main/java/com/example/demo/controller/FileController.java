@@ -1,6 +1,7 @@
 package com.example.demo.controller;
 
 import com.example.demo.service.FileStorageService;
+import com.example.demo.util.SecurityUtils;
 import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -11,6 +12,8 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -73,6 +76,45 @@ public class FileController {
         }
     }
     
+        /**
+     * 结果图片访问接口
+     */
+    @GetMapping("/images/results/{filename:.+}")
+    public ResponseEntity<Resource> getResultImage(@PathVariable String filename, HttpServletRequest request) {
+        logger.info("请求访问结果图片: {}", filename);
+        
+        // 获取当前用户ID
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        Long userId = SecurityUtils.getCurrentUserId(authentication);
+        logger.info("当前访问用户ID: {}", userId);
+        // 测试用
+        userId = 1L;
+        String resultPath = "./uploads/results/user_" + userId + "/merges/" + filename;
+        try {
+            // 首先尝试从上传目录获取
+            Resource resource = fileStorageService.loadFileAsResource(resultPath);
+            return prepareResourceResponse(resource, request);
+        } catch (Exception e) {
+            logger.warn("上传目录中未找到结果图片: {}, 尝试从静态资源目录加载", filename);
+            
+            try {
+                // 尝试从静态资源目录加载
+                Path path = Paths.get("./src/main/resources/static/images/scenes/" + filename);
+                Resource resource = new UrlResource(path.toUri());
+                
+                if (resource.exists()) {
+                    return prepareResourceResponse(resource, request);
+                } else {
+                    logger.error("场景图片不存在: {}", filename);
+                    return ResponseEntity.notFound().build();
+                }
+            } catch (MalformedURLException ex) {
+                logger.error("无法加载场景图片: {}", filename, ex);
+                return ResponseEntity.notFound().build();
+            }
+        }
+    }
+
     /**
      * 场景图片访问接口
      */
