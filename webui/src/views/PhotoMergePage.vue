@@ -1,6 +1,6 @@
 <template>
   <div class="photo-merge-container">
-    <el-row :gutter="20">
+    <el-row :gutter="10">
       <el-col :span="24">
         <el-card class="welcome-card">
           <div class="compact-header">
@@ -11,9 +11,9 @@
       </el-col>
     </el-row>
 
-    <el-row :gutter="20" class="mt-20">
+    <el-row :gutter="10" class="mt-20">
       <!-- 左侧操作面板 -->
-      <el-col :span="12">
+      <el-col :span="6">
         <el-card class="control-panel">
           <template #header>
             <div class="panel-header">
@@ -22,7 +22,7 @@
           </template>
           <div class="upload-area">
             <el-row :gutter="10">
-              <el-col :span="12">
+              <el-col :span="24">
                 <el-upload
                   class="upload-box"
                   drag
@@ -48,39 +48,7 @@
                   <template v-else>
                     <el-icon class="el-icon--upload"><upload-filled /></el-icon>
                     <div class="el-upload__text">
-                      点击或拖入素材1
-                      <div class="upload-tip">推荐尺寸 1920×1080<br>支持PNG/JPG/MP4</div>
-                    </div>
-                  </template>
-                </el-upload>
-              </el-col>
-              <el-col :span="12">
-                <el-upload
-                  class="upload-box"
-                  drag
-                  action="#"
-                  :auto-upload="false"
-                  :limit="1"
-                  :on-change="handleFile2Change"
-                  :on-remove="handleFile2Remove"
-                  :file-list="fileList2"
-                  :show-file-list="false"
-                  :before-upload="beforeUpload"
-                >
-                  <template v-if="previewUrl2">
-                    <div class="image-preview">
-                      <img :src="previewUrl2" class="preview-img" />
-                      <div class="preview-actions">
-                        <el-button type="danger" size="small" circle @click.stop="handleFile2Remove(fileList2[0])">
-                          <el-icon><Delete /></el-icon>
-                        </el-button>
-                      </div>
-                    </div>
-                  </template>
-                  <template v-else>
-                    <el-icon class="el-icon--upload"><upload-filled /></el-icon>
-                    <div class="el-upload__text">
-                      点击或拖入素材2
+                      点击或拖入素材
                       <div class="upload-tip">推荐尺寸 1920×1080<br>支持PNG/JPG/MP4</div>
                     </div>
                   </template>
@@ -90,7 +58,6 @@
           </div>
 
           <div class="control-section mt-20">
-            <h3>参数设置</h3>
             
             <div class="scene-selection">
               <h4>场景模板</h4>
@@ -157,8 +124,8 @@
         </el-card>
       </el-col>
       
-      <!-- 右侧预览面板 -->
-      <el-col :span="12">
+      <!-- 中间预览面板 -->
+      <el-col :span="14">
         <el-card class="preview-panel">
           <template #header>
             <div class="panel-header">
@@ -194,8 +161,11 @@
             </div>
           </div>
         </el-card>
-        
-        <el-card class="recent-panel mt-20">
+      </el-col>
+
+      <!-- 右侧历史记录 -->
+      <el-col :span="4">
+        <el-card class="history-panel">
           <template #header>
             <div class="panel-header">
               <h3>历史记录</h3>
@@ -248,9 +218,7 @@ const router = useRouter()
 
 // 文件上传列表和预览URL
 const fileList1 = ref([])
-const fileList2 = ref([])
 const previewUrl1 = ref('')
-const previewUrl2 = ref('')
 
 // 预览状态
 const previewImage = ref('')
@@ -263,7 +231,6 @@ const lastMergeId = ref(null)
 // 表单数据
 const mergeForm = reactive({
   photo1: null,
-  photo2: null,
   sceneId: '',
   customPrompt: ''
 })
@@ -324,7 +291,7 @@ const mockScenes = [
 
 // 计算属性：是否可以提交
 const canSubmit = computed(() => {
-  return mergeForm.photo1 && mergeForm.photo2 && mergeForm.sceneId
+  return mergeForm.photo1 && mergeForm.sceneId
 })
 
 // 上传文件变化回调
@@ -350,35 +317,7 @@ const handleFile1Change = (uploadFile, uploadFiles) => {
       previewUrl1.value = url
       console.log('预览URL1已创建:', previewUrl1.value)
     }
-    
-    ElMessage.success('素材1已选择')
-  }
-}
-
-const handleFile2Change = (uploadFile, uploadFiles) => {
-  // 确保是选择文件的操作而不是删除操作
-  if (uploadFiles.length > 0) {
-    const file = uploadFile
-    
-    // 先清理之前的URL（如果存在）
-    if (previewUrl2.value && previewUrl2.value.startsWith('blob:')) {
-      URL.revokeObjectURL(previewUrl2.value)
-    }
-    
-    mergeForm.photo2 = file.raw
-    
-    // 仅保留最新的文件
-    fileList2.value = [file]
-    
-    // 创建本地预览
-    if (file.raw instanceof File && file.raw.type.startsWith('image/')) {
-      const url = URL.createObjectURL(file.raw)
-      file.url = url
-      previewUrl2.value = url
-      console.log('预览URL2已创建:', previewUrl2.value)
-    }
-    
-    ElMessage.success('素材2已选择')
+        ElMessage.success('素材已选择')
   }
 }
 
@@ -390,15 +329,6 @@ const handleFile1Remove = (file) => {
   fileList1.value = []
   mergeForm.photo1 = null
   previewUrl1.value = ''
-}
-
-const handleFile2Remove = (file) => {
-  if (file && file.url && file.url.startsWith('blob:')) {
-    URL.revokeObjectURL(file.url)
-  }
-  fileList2.value = []
-  mergeForm.photo2 = null
-  previewUrl2.value = ''
 }
 
 // 选择场景
@@ -446,7 +376,7 @@ const useSelectedPrompt = () => {
 // 创建合成
 const createMerge = async () => {
   if (!canSubmit.value) {
-    ElMessage.warning('请上传两张素材并选择场景')
+    ElMessage.warning('请上传素材并选择场景')
     return
   }
   
@@ -460,7 +390,6 @@ const createMerge = async () => {
     // 创建FormData对象用于上传文件
     const formData = new FormData()
     formData.append('photo1', mergeForm.photo1)
-    formData.append('photo2', mergeForm.photo2)
     formData.append('sceneId', mergeForm.sceneId)
     formData.append('promptText', mergeForm.customPrompt || '')
     
@@ -815,17 +744,7 @@ onBeforeUnmount(() => {
     URL.revokeObjectURL(previewUrl1.value)
   }
   
-  if (previewUrl2.value && previewUrl2.value.startsWith('blob:')) {
-    URL.revokeObjectURL(previewUrl2.value)
-  }
-  
   fileList1.value.forEach(file => {
-    if (file.url && file.url.startsWith('blob:')) {
-      URL.revokeObjectURL(file.url)
-    }
-  })
-  
-  fileList2.value.forEach(file => {
     if (file.url && file.url.startsWith('blob:')) {
       URL.revokeObjectURL(file.url)
     }
@@ -839,7 +758,11 @@ onBeforeUnmount(() => {
 }
 
 .mt-20 {
-  margin-top: 20px;
+  margin-top: 10px;
+}
+
+.mt-10 {
+  margin-top: 10px;
 }
 
 .welcome-card {
@@ -850,7 +773,7 @@ onBeforeUnmount(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 12px 20px;
+  padding: 0px 20px;
 }
 
 .compact-header h2 {
@@ -877,27 +800,23 @@ onBeforeUnmount(() => {
 }
 
 .upload-area {
-  margin-bottom: 20px;
+  margin-bottom: 50px;
 }
 
 .upload-box {
-  height: 150px;
+  height: 90px;
   width: 100%;
   position: relative;
 }
 
-.upload-box .el-upload {
-  width: 100%;
-}
-
 .upload-box .el-upload-dragger {
   width: 100%;
-  height: 150px;
+  height: 90px;
 }
 
 .image-preview {
   width: 100%;
-  height: 150px;
+  height: 90px;
   position: relative;
   display: flex;
   justify-content: center;
@@ -939,16 +858,34 @@ onBeforeUnmount(() => {
 }
 
 .upload-tip {
-  font-size: 12px;
+  font-size: 10px;
   color: #909399;
-  margin-top: 8px;
+  margin-top: 4px;
+}
+
+.el-upload__text {
+  font-size: 12px;
+}
+
+.el-icon--upload {
+  font-size: 20px;
+  margin-bottom: 4px;
+}
+
+.control-section {
+  margin-top: 20px;
 }
 
 .control-section h4 {
   margin-top: 0;
-  margin-bottom: 10px;
+  margin-bottom: 15px;
   font-size: 16px;
   color: #606266;
+  font-weight: bold;
+}
+
+.scene-selection {
+  margin-top: 15px;
 }
 
 .scene-grid {
@@ -984,7 +921,7 @@ onBeforeUnmount(() => {
 
 .scene-preview {
   width: 100%;
-  height: 80px;
+  height: 100px;
   display: block;
   object-fit: contain;
   background-color: #f0f2f5;
@@ -1002,6 +939,13 @@ onBeforeUnmount(() => {
 
 .prompt-section {
   margin-top: 20px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.prompt-section .el-textarea {
+  margin-top: 10px;
 }
 
 .prompt-actions {
@@ -1016,93 +960,68 @@ onBeforeUnmount(() => {
 }
 
 .action-section {
+  margin-top: 20px;
   display: flex;
   justify-content: center;
-  margin-top: 30px;
+  padding: 15px 0;
 }
 
 .action-section .el-button {
   width: 80%;
-  height: 50px;
-  font-size: 18px;
-}
-
-.preview-area {
-  min-height: 370px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.preview-placeholder {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  height: 100%;
-  color: #909399;
-}
-
-.processing-preview {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-.processing-text {
-  margin-top: 20px;
-  color: #409EFF;
+  height: 45px;
   font-size: 16px;
 }
 
-.result-preview {
-  width: 100%;
+.preview-panel {
+  height: calc(100vh - 240px);
   display: flex;
   flex-direction: column;
-  align-items: center;
 }
 
-.preview-image {
-  max-height: 350px;
-  width: 100%;
-  object-fit: contain;
+.preview-panel .el-card__body {
+  flex: 1;
+  overflow: hidden;
 }
 
-.preview-actions {
-  margin-top: 20px;
-  display: flex;
-  gap: 15px;
+.recent-merges {
+  height: 100%;
 }
 
 .history-grid {
   display: flex;
-  flex-wrap: nowrap;
-  gap: 10px;
-  padding: 5px;
+  flex-direction: column;
+  gap: 15px;
+  padding: 10px;
 }
 
 .history-item {
-  width: 120px;
-  flex-shrink: 0;
-  border-radius: 4px;
-  overflow: hidden;
+  width: 100%;
   cursor: pointer;
-  transition: transform 0.3s;
+  border-radius: 8px;
+  overflow: hidden;
+  transition: all 0.3s;
   border: 1px solid #ebeef5;
 }
 
 .history-item:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+  box-shadow: 0 2px 12px 0 rgba(0,0,0,0.1);
 }
 
-.history-item .el-image, .pending-image {
+.history-item .el-image {
   width: 100%;
-  height: 80px;
+  height: 160px;
+  display: block;
+  object-fit: cover;
+}
+
+.pending-image {
+  width: 100%;
+  height: 160px;
   display: flex;
-  justify-content: center;
   align-items: center;
-  background-color: #f5f7fa;
+  justify-content: center;
+  background: #f5f7fa;
 }
 
 .pending-image .el-icon {
@@ -1111,14 +1030,42 @@ onBeforeUnmount(() => {
 }
 
 .history-info {
-  padding: 5px;
+  padding: 8px;
+  background: #f8f9fa;
   display: flex;
-  justify-content: space-between;
-  align-items: center;
+  flex-direction: column;
+  gap: 5px;
 }
 
 .history-date {
   font-size: 12px;
   color: #909399;
+}
+
+.history-panel {
+  height: calc(100vh - 240px);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.history-panel .el-card__body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px;
+}
+
+.control-panel {
+  height: calc(100vh - 240px);
+  display: flex;
+  flex-direction: column;
+}
+
+.control-panel .el-card__body {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
 }
 </style> 
