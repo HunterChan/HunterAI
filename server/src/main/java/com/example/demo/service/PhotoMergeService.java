@@ -149,6 +149,7 @@ public class PhotoMergeService {
         try {
             // 构建存储路径
             Path userResultDir = Paths.get("./uploads/results/user_" + userId + "/merges");
+            logger.info("ResultImage Path: {}", userResultDir.toAbsolutePath());
             java.nio.file.Files.createDirectories(userResultDir);
             
             // 生成唯一文件名

@@ -22,7 +22,8 @@
           </template>
           <div class="upload-area">
             <el-row :gutter="10">
-              <el-col :span="24">
+              <!-- 第一个上传控件 -->
+              <el-col :span="12">
                 <el-upload
                   class="upload-box"
                   drag
@@ -40,6 +41,40 @@
                       <img :src="previewUrl1" class="preview-img" />
                       <div class="preview-actions">
                         <el-button type="danger" size="small" circle @click.stop="handleFile1Remove(fileList1[0])">
+                          <el-icon><Delete /></el-icon>
+                        </el-button>
+                      </div>
+                    </div>
+                  </template>
+                  <template v-else>
+                    <el-icon class="el-icon--upload"><upload-filled /></el-icon>
+                    <div class="el-upload__text">
+                      点击或拖入素材
+                      <div class="upload-tip">推荐尺寸 1920×1080<br>支持PNG/JPG/MP4</div>
+                    </div>
+                  </template>
+                </el-upload>
+              </el-col>
+              
+              <!-- 第二个上传控件 -->
+              <el-col :span="12">
+                <el-upload
+                  class="upload-box"
+                  drag
+                  action="#"
+                  :auto-upload="false"
+                  :limit="1"
+                  :on-change="handleFile2Change"
+                  :on-remove="handleFile2Remove"
+                  :file-list="fileList2"
+                  :show-file-list="false"
+                  :before-upload="beforeUpload"
+                >
+                  <template v-if="previewUrl2">
+                    <div class="image-preview">
+                      <img :src="previewUrl2" class="preview-img" />
+                      <div class="preview-actions">
+                        <el-button type="danger" size="small" circle @click.stop="handleFile2Remove(fileList2[0])">
                           <el-icon><Delete /></el-icon>
                         </el-button>
                       </div>
@@ -218,7 +253,9 @@ const router = useRouter()
 
 // 文件上传列表和预览URL
 const fileList1 = ref([])
+const fileList2 = ref([])
 const previewUrl1 = ref('')
+const previewUrl2 = ref('')
 
 // 预览状态
 const previewImage = ref('')
@@ -231,6 +268,7 @@ const lastMergeId = ref(null)
 // 表单数据
 const mergeForm = reactive({
   photo1: null,
+  photo2: null,
   sceneId: '',
   customPrompt: ''
 })
@@ -291,7 +329,7 @@ const mockScenes = [
 
 // 计算属性：是否可以提交
 const canSubmit = computed(() => {
-  return mergeForm.photo1 && mergeForm.sceneId
+  return fileList1.value.length > 0 && fileList2.value.length > 0 && mergeForm.sceneId
 })
 
 // 上传文件变化回调
@@ -317,7 +355,7 @@ const handleFile1Change = (uploadFile, uploadFiles) => {
       previewUrl1.value = url
       console.log('预览URL1已创建:', previewUrl1.value)
     }
-        ElMessage.success('素材已选择')
+    ElMessage.success('素材已选择')
   }
 }
 
@@ -329,6 +367,42 @@ const handleFile1Remove = (file) => {
   fileList1.value = []
   mergeForm.photo1 = null
   previewUrl1.value = ''
+}
+
+// 处理第二个文件的上传和移除
+const handleFile2Change = (uploadFile, uploadFiles) => {
+  // 确保是选择文件的操作而不是删除操作
+  if (uploadFiles.length > 0) {
+    const file = uploadFile
+    
+    // 先清理之前的URL（如果存在）
+    if (previewUrl2.value && previewUrl2.value.startsWith('blob:')) {
+      URL.revokeObjectURL(previewUrl2.value)
+    }
+    
+    mergeForm.photo2 = file.raw
+    
+    // 仅保留最新的文件
+    fileList2.value = [file]
+    
+    // 创建本地预览
+    if (file.raw instanceof File && file.raw.type.startsWith('image/')) {
+      const url = URL.createObjectURL(file.raw)
+      file.url = url
+      previewUrl2.value = url
+      console.log('预览URL2已创建:', previewUrl2.value)
+    }
+    ElMessage.success('素材已选择')
+  }
+}
+
+const handleFile2Remove = (file) => {
+  if (file && file.url && file.url.startsWith('blob:')) {
+    URL.revokeObjectURL(file.url)
+  }
+  fileList2.value = []
+  mergeForm.photo2 = null
+  previewUrl2.value = ''
 }
 
 // 选择场景
@@ -376,7 +450,7 @@ const useSelectedPrompt = () => {
 // 创建合成
 const createMerge = async () => {
   if (!canSubmit.value) {
-    ElMessage.warning('请上传素材并选择场景')
+    ElMessage.warning('请上传两张照片并选择场景模板')
     return
   }
   
@@ -389,9 +463,21 @@ const createMerge = async () => {
   try {
     // 创建FormData对象用于上传文件
     const formData = new FormData()
-    formData.append('photo1', mergeForm.photo1)
+    if (mergeForm.photo1) {
+      formData.append('photo1', mergeForm.photo1)
+    }
+    if (mergeForm.photo2) {
+      formData.append('photo2', mergeForm.photo2)
+    }
     formData.append('sceneId', mergeForm.sceneId)
     formData.append('promptText', mergeForm.customPrompt || '')
+    
+    console.log('准备提交的数据:', {
+      photo1: mergeForm.photo1 ? mergeForm.photo1.name : '未选择',
+      photo2: mergeForm.photo2 ? mergeForm.photo2.name : '未选择',
+      sceneId: mergeForm.sceneId,
+      promptText: mergeForm.customPrompt
+    })
     
     const response = await axios.post('/api/merges', formData, {
       headers: {
@@ -737,14 +823,22 @@ onMounted(async () => {
   fetchPrompts()
 })
 
-// 组件卸载前释放创建的对象URL，避免内存泄漏
+// 组件卸载前清理
 onBeforeUnmount(() => {
   // 清理预览URL
   if (previewUrl1.value && previewUrl1.value.startsWith('blob:')) {
     URL.revokeObjectURL(previewUrl1.value)
   }
+  if (previewUrl2.value && previewUrl2.value.startsWith('blob:')) {
+    URL.revokeObjectURL(previewUrl2.value)
+  }
   
   fileList1.value.forEach(file => {
+    if (file.url && file.url.startsWith('blob:')) {
+      URL.revokeObjectURL(file.url)
+    }
+  })
+  fileList2.value.forEach(file => {
     if (file.url && file.url.startsWith('blob:')) {
       URL.revokeObjectURL(file.url)
     }
@@ -800,11 +894,18 @@ onBeforeUnmount(() => {
 }
 
 .upload-area {
-  margin-bottom: 50px;
+  margin-bottom: 100px;
+}
+
+.upload-label {
+  margin-bottom: 8px;
+  font-size: 14px;
+  color: #606266;
+  font-weight: bold;
 }
 
 .upload-box {
-  height: 90px;
+  height: 80px;
   width: 100%;
   position: relative;
 }
@@ -885,7 +986,7 @@ onBeforeUnmount(() => {
 }
 
 .scene-selection {
-  margin-top: 15px;
+  margin-top: 50px;
 }
 
 .scene-grid {
